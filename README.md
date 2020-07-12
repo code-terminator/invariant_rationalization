@@ -1,5 +1,7 @@
 # Invariant Rationalization
-This repo contains the Tensorflow implementation of [Invariant Rationalization](https://arxiv.org/abs/2003.09772).  To make this repo neat and light-weight, we only release our core code on the polluted [IMDB dataset](http://ai.stanford.edu/~amaas/data/sentiment/) (please refer to the paper for details) for the demo purpose.  If you are interested in experimenting with the exact data splits of our beer review datasets, please contact us, and we are very happy to provide the data and help.
+This repo contains the Tensorflow implementation of [Invariant Rationalization](https://arxiv.org/abs/2003.09772).  To make this repo neat and light-weight, we only release our core code on the polluted [IMDB dataset](http://ai.stanford.edu/~amaas/data/sentiment/) (please refer to the paper for details) for the demo purpose. 
+
+To acquire access to the [beer review](http://snap.stanford.edu/data/web-BeerAdvocate.html) dataset, please contact the original [authors](https://cseweb.ucsd.edu/~jmcauley/) of the dataset.  If you are interested in experimenting with the exact data splits as shown in our paper, please contact us, and we are very happy to provide the data partition once you have the access to the original file.
 
 There is a short video that explains the main concepts of our work. If you find this work useful and use it in your research, please consider citing our paper.
 
