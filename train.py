@@ -92,3 +92,64 @@ def train_imdb(dataset, model, opts, step, args, show_rationale=False):
                               args.vocab.idx2word)
 
     return step
+
+
+def train_beer(dataset, model, opts, step, args):
+    """
+    Training invariant model on beer review.
+    """
+    ### obtain the optimizer
+    gen_opt = opts[0]
+    env_inv_opt = opts[1]
+    env_enable_opt = opts[2]
+
+    ### average loss
+    avg_env_inv_acc = tf.contrib.eager.metrics.Accuracy("avg_env_inv_acc",
+                                                        dtype=tf.float32)
+    avg_env_enable_acc = tf.contrib.eager.metrics.Accuracy("avg_env_enable_acc",
+                                                           dtype=tf.float32)
+
+    for (batch, (inputs, masks, labels, envs)) in enumerate(dataset):
+
+        path = step % 3
+
+        with tf.GradientTape() as tape:
+
+            rationale, env_inv_logits, env_enable_logits = model(
+                inputs, masks, envs)
+
+            env_inv_loss, env_enable_loss, diff_loss = inv_rat_loss(
+                env_inv_logits, env_enable_logits, labels)
+
+            gen_loss = args.diff_lambda * diff_loss + env_inv_loss
+
+        # corrdinate descent
+        # apply gradient based on `path`
+        if path == 0:
+            # update the generator
+            gen_vars = model.generator_trainable_variables()
+            gen_grads = tape.gradient(gen_loss, gen_vars)
+            gen_opt.apply_gradients(zip(gen_grads, gen_vars))
+        elif path == 1:
+            # update the env inv predictor
+            env_inv_vars = model.env_inv_trainable_variables()
+            env_inv_grads = tape.gradient(env_inv_loss, env_inv_vars)
+            env_inv_opt.apply_gradients(zip(env_inv_grads, env_inv_vars))
+        elif path == 2:
+            # update the env enabled predictor
+            env_enable_vars = model.env_enable_trainable_variables()
+            env_enable_grads = tape.gradient(env_enable_loss, env_enable_vars)
+            env_enable_opt.apply_gradients(
+                zip(env_enable_grads, env_enable_vars))
+        else:
+            raise ValueError("Invalid path number. ")
+
+        step += 1
+
+        avg_env_inv_acc(tf.argmax(env_inv_logits, axis=1, output_type=tf.int64),
+                        tf.argmax(labels, axis=1, output_type=tf.int64))
+        avg_env_enable_acc(
+            tf.argmax(env_enable_logits, axis=1, output_type=tf.int64),
+            tf.argmax(labels, axis=1, output_type=tf.int64))
+
+    return step
